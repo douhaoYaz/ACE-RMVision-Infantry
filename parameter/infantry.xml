@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<speed_bullet>17</speed_bullet>
+<h_barrel2ptz>0</h_barrel2ptz>
+<h_car>410</h_car>
+<pt3_ptz2camera>
+  0. 0. 0.</pt3_ptz2camera>
+<path_param_short>../parameter/capture/camera_4mm_1.xml</path_param_short>
+<is_short_only>0</is_short_only>
+<is_prime_only>1</is_prime_only>
+<path_param_long>../parameter/capture/camera_galaxy_1.xml</path_param_long>
+<is_buff>1</is_buff>
+<h_buff>350</h_buff>
+<r_buff>700</r_buff>
+<rate_buff>1.0000000000000001e-01</rate_buff>
+<dist_buff>5200</dist_buff>
+<is_switch_cap>0</is_switch_cap>
+<th_lost_target>200</th_lost_target>
+<rate_switch_cap>5.0000000000000000e-01</rate_switch_cap>
+<th_short>1300</th_short>
+<th_long>1600</th_long>
+</opencv_storage>

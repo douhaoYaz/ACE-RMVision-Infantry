@@ -1,0 +1,196 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: #ccc;
+    background-color: black;
+}
+
+/************ScrollBar************/
+QScrollBar::vertical {
+    width: 8px;
+    background: rgba(0, 0, 0, 100%);
+    margin: 0px;
+    padding-top: 0px;
+    padding-bottom:0px;
+}
+
+QScrollBar::handle::vertical {
+    width: 8px;
+    background:rgba(204, 204, 204, 10%);
+    border-radius: 5px;
+    min-height:20px;
+}
+
+QScrollBar::handle::vertical::hover {
+    background:rgba(204, 204, 204, 20%);
+}
+
+QScrollBar::add-line::vertical {
+    height: 0px;
+    subcontrol-position:bottom;
+}
+
+QScrollBar::sub-line::vertial {
+    height:0px;
+    subcontrol-position:bottom;
+}
+
+/************Input************/
+QLineEdit {
+    background-color: #444;
+    border-style: none;
+    color: white;
+    padding-left: 5px;
+    selection-color: #444;
+    selection-background-color: white;
+}
+
+
+/************ListWidget************/
+QListWidget {
+    padding: 5px;
+    color: white;
+    border-color: #ccc;
+    border-style: solid none none none;
+    border-width: 1px;
+}
+
+QListWidget::item::selected {
+    background-color: gray;
+}
+
+/************QComboBox************/
+
+QComboBox {
+    border-style: none;
+    background-color: #444;
+    color: #ccc;
+    padding-left: 5px;
+}
+
+QComboBox::drop-down {
+    width: 30px;
+    image: url(../GUI/icon/down_light.png);
+    background-color: #444;
+}
+
+QComboBox::drop-down::hover {
+    image: url(../GUI/icon/down_white.png);
+}
+
+/************QSpinBox************/
+
+QSpinBox {
+    border-style: none;
+    padding-left: 5px;
+    selection-color: #444;
+    selection-background-color: white;
+}
+
+QSpinBox::up-button {
+    image: url(../GUI/icon/up_light.png);
+}
+
+QSpinBox::down-button {
+    image: url(../GUI/icon/down_light.png);
+}
+
+QSpinBox::up-button::hover {
+    image: url(../GUI/icon/up_white.png);
+}
+
+QSpinBox::down-button::hover {
+    image: url(../GUI/icon/down_white.png);
+}
+
+QSpinBox {
+    background-color: #444;
+    color: white;
+}
+
+/************CheckableButton************/
+
+CheckableButton {
+    border-radius: 0;
+    color: #ccc;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #444;
+}
+
+CheckableButton::hover {
+    color: white;
+}
+
+CheckableButton::checked {
+    background-color: white;
+    color: black;
+}
+
+/************CollapseButton************/
+
+CollapseButton {
+    border-style: none none solid none;
+    border-width: 1px;
+    border-color: gray;
+    padding-left: 5px;
+    text-align: left;
+    font-size: 18px;
+}
+
+CollapseButton::hover, CollapseButton::checked {
+    color: white;
+
+}
+
+/************QSlider************/
+
+QSlider::handle {
+    background-color: gray;
+    border-style: solid;
+    border-radius: 5px;
+    width: 10px;
+}
+
+QSlider::handle::hover {
+    background-color: #ccc;
+}
+
+QSlider::sub-page {
+    background-color: #444;
+    width: 2px;
+}
+
+/*QSlider::add-page {
+    background-color: #444;
+    width: 2px;
+}*/
+
+/************QScrollArea************/
+
+QScrollArea {
+    padding: 5px;
+    border-style: none none none solid;
+    border-color: #ccc;
+    border-width: 1px;
+}
+
+ControlArea {
+    border-style: solid none none solid;
+    border-color: #ccc;
+    border-width: 1px;
+}
+
+ShowArea {
+    border-style: solid solid none none;
+    border-color: #ccc;
+    border-width: 1px;
+}
+
+TitleBar {
+    border-style: none none solid none;
+    border-color: red;
+    border-width: 1px;
+}
+
