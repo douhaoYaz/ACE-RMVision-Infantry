@@ -1,4 +1,4 @@
-﻿#include "utils.h"
+#include "utils.h"
 
 #ifdef GUI
 #include "GUI/main_widget.h"
@@ -44,16 +44,11 @@ void Tool::drawRotatedRectangle(cv::Mat& img, cv::RotatedRect rrect,
 }
 
 int Tool::calculateRoiAverageIntensity(cv::Mat& img, cv::Rect rect) {
-    //判断
     if (rect.width < 1 || rect.height < 1 || rect.x < 1 || rect.y < 1
 			|| rect.width + rect.x > img.cols || rect.height + rect.y > img.rows)
         return 255;
-    //设置ROI 直接取灯条对区域  \\Range对象可以用来表示矩阵的多个连续的行或者多个连续的列
     cv::Mat roi = img(cv::Range(rect.y, rect.y + rect.height), cv::Range(rect.x, rect.x + rect.width));
-    // static_cast 是温柔的，靠谱的，能做好的事情肯定能给你做，做不来的你别求他， 求也没用，别勉强
-    //cv::mean(&cv::Mat)，该函数会得到Mat中各个通道的均值 \\此处直接取ROI区域的单灰度图像进行区域均值求解
     int average_intensity = static_cast<int>(cv::mean(roi).val[0]);
-    //
     return average_intensity;
 }
 

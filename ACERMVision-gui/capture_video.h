@@ -1,9 +1,9 @@
-﻿#ifndef CAPTURE_VIDEO_H_INCLUDE
+#ifndef CAPTURE_VIDEO_H_INCLUDE
 #define CAPTURE_VIDEO_H_INCLUDE
 
 #include "settings.h"
-#include <galaxy/GxIAPI.h>
-#include <galaxy/DxImageProc.h>
+#include <GxIAPI.h>
+#include <DxImageProc.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -111,7 +111,7 @@ private:
 
 };
 
-class Capture;
+class Capture;          //应该是声明一下Capture这个类，因为下面的CaptureData类里的getFromCapture函数用到了Capture类的引用
 /**
  *@brief 相机数据
  *@用循环队列做缓存，FIFO，因此有BUFFER_SIZE帧的延迟
@@ -188,7 +188,7 @@ public:
 	 *@brief 将get和read索引重置为0，以同步读写
 	 */
 	void reset() {
-		idx_get = idx_read = 0;
+        idx_get = idx_read = 0;
 	}
 
 
@@ -200,8 +200,6 @@ private:
     volatile int idx_get;	//读取索引
     volatile int idx_read;	//获取索引
 };
-
-//优先级队列处理图像，改进循环队列
 
 class Capture {
 public:

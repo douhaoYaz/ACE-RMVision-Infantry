@@ -16,9 +16,9 @@
 #include <iterator>
 
 bool SerialPort::openPort(const char* path_dev) {
-    fd = open(path_dev, O_RDWR | O_NOCTTY | O_NDELAY);
+    fd = open(path_dev, O_RDWR | O_NOCTTY | O_NDELAY);      //根据路径打开文件，并根据参数决定打开方式，若成功则返回文件描述符，若失败则返回-1
     if (fd != -1) {
-        fcntl(fd, F_SETFL, 0);
+        fcntl(fd, F_SETFL, 0);                              //设置文件描述符状态标志，0对应的是O_APPEND（不确定），强制每次写(write)操作都添加在文件大的末尾
 
 #ifdef TEXT_PORT_OPEN
         StatusLog::log("已打开串口!");
@@ -89,7 +89,7 @@ bool SerialPort::sendXYZ(double x, double y, double z) {
 
     x *= param.other.factor_x;
     y *= param.other.factor_y;
-    z *= param.other.factor_y;
+    z *= param.other.factor_z;
 
     short* data = (short*)(bytes_send+1);
     data[0] = x;
@@ -115,7 +115,6 @@ bool SerialPort::receiveData(Parameter& param) {
     read_status = read(fd, &read_buffer, 5);
 
     if(read_status == -1 || read_status == 0) {
-//        std::cout << "can not read!" << std::endl;
         //重启串口
         restartPort();
         return false;

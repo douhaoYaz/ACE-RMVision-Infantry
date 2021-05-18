@@ -1,4 +1,4 @@
-﻿#include "capture_video.h"
+#include "capture_video.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/videodev2.h>
@@ -448,8 +448,7 @@ CameraDevice& CameraDevice::operator>>(cv::Mat& img) {
 	GXGetImage(hDevice, &stFrameData, 100);
 
 	if (stFrameData.nStatus == GX_FRAME_STATUS_SUCCESS) {
-		//图像获取成功
-
+        //图像获取成功
 		char* m_rgb_image = nullptr; //增加的内容
 		m_rgb_image = new char[stFrameData.nWidth * stFrameData.nHeight * 3];
 

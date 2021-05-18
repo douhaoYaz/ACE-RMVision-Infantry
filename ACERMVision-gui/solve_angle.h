@@ -1,4 +1,4 @@
-﻿#ifndef SOLVE_ANGLE_H_INCLUDE
+#ifndef SOLVE_ANGLE_H_INCLUDE
 #define SOLVE_ANGLE_H_INCLUDE
 
 #include "settings.h"
@@ -42,7 +42,7 @@ public:
             h_barrel2ptz(setting.h_barrel2ptz) {
 
         pt3_ptz2camera = static_cast<cv::Point3f>(setting.pt3_ptz2camera);
-        cv::Mat(pt3s_obj).convertTo(mat_ptobj, CV_32F);      //角度结算点变从UINT8位变成FLOAT32位
+        cv::Mat(pt3s_obj).convertTo(mat_ptobj, CV_32F);
 	}
 
 

@@ -1,4 +1,4 @@
-﻿#ifndef UTILS_H_INCLUDE
+#ifndef UTILS_H_INCLUDE
 #define UTILS_H_INCLUDE
 
 #include <opencv2/opencv.hpp>
@@ -263,7 +263,6 @@ protected:
  */
 class Tool {
 public:
-     //1、绘制旋转矩形
     /**
      *@brief 绘制opencv旋转矩形
      *@param img   要绘制的原图
@@ -273,7 +272,6 @@ public:
     static void drawRotatedRectangle(cv::Mat& img, cv::RotatedRect rrect, const BGR color,
             int thickness=1, int type_line=cv::LINE_8, int shift=0);
 
-    //2、计算距离
     /**
      *@brief 计算直线距离
      *@param pt1, pt2 要计算的两个点
@@ -284,7 +282,6 @@ public:
         return sqrt((pt1.x - pt2.x)*(pt1.x - pt2.x)+((pt1.y - pt2.y)*(pt1.y - pt2.y)));
     }
 
-    //3、把弧度转化为角度
     /**
      *@brief 把弧度转化为角度
      *@param rad 要转化的弧度
@@ -294,7 +291,6 @@ public:
         return rad * 180 / CV_PI;
     }
 
-    //4、把角度转化为弧度
     /**
      *@brief 把角度转化为弧度
      *@param angle 要转化的角度
@@ -304,7 +300,6 @@ public:
         return angle / 180. * CV_PI;
     }
 
-    //5、在点处绘制十字标记
     /**
      *@brief 在点处绘制十字标记
      *@param img       要绘制的原图
@@ -322,7 +317,6 @@ public:
                 color, thickness, type_line, shift);
     }
 
-    //6、计算图像ROI区域强度
     /**
      *@brief 计算图像ROI区域强度
      *@param img      要计算的原图
@@ -331,7 +325,6 @@ public:
      */
     static int calculateRoiAverageIntensity(cv::Mat& img, cv::Rect rect_roi);
 
-    //7、计算图像区域强度
 	/**
 	 *@brief 计算图像区域强度
 	 *@param img  要计算的图像
@@ -339,7 +332,6 @@ public:
 	 */
 	static int calculateRoiAverageIntensity(cv::Mat& img);
 
-    //8、限制角度
     /**
          *@brief 限制角度
          *@param angle      要限制的角度
@@ -348,7 +340,7 @@ public:
          */
 	static float limitAngle(float angle, float angle_max);
 
-    //9、平滑角度变化(防止角度数据跳动过大)
+
 	/**
 	 *@brief 平滑角度变化(防止角度数据跳动过大)
 	 *@param angle     要限制的角度
@@ -357,7 +349,6 @@ public:
 	 */
 	static float smoothAngleChange(float cur_angle, float factor, float th_angle);
 
-    //10、最小二乘法线性拟合
     /**
      *@brief 最小二乘法线性拟合
      *@param angle     要限制的角度
@@ -396,134 +387,134 @@ inline std::string Tool::toString<const QString&>(const QString& val) {
 
 #else
 
-#include <curses.h>
+//#include <curses.h>
 
-class WindowPainter {
-public:
+//class WindowPainter {
+//public:
 
-    static WindowPainter painter;
-    static int end;
+//    static WindowPainter painter;
+//    static int end;
 
-    WindowPainter(const WindowPainter&)=delete;
-    ~WindowPainter() {
-        delwin(win_param);
-        delwin(win_cmd);
-        delwin(win_input);
-    }
+//    WindowPainter(const WindowPainter&)=delete;
+//    ~WindowPainter() {
+//        delwin(win_param);
+//        delwin(win_cmd);
+//        delwin(win_input);
+//    }
 
-    WindowPainter& operator<<(const char* str);
-    WindowPainter& operator<<(const std::string& str) {
-        return this->operator<<(str.c_str());
-    }
-    WindowPainter& operator<<(const int& flag);
+//    WindowPainter& operator<<(const char* str);
+//    WindowPainter& operator<<(const std::string& str) {
+//        return this->operator<<(str.c_str());
+//    }
+//    WindowPainter& operator<<(const int& flag);
 
-    static WindowPainter getPainter();
-    static void setPainter(const WindowPainter &value);
+//    static WindowPainter getPainter();
+//    static void setPainter(const WindowPainter &value);
 
-    WindowPainter& operator>>(char* str);
-    WindowPainter& operator>>(std::string& str) {
-        char s[32];
-        this->operator>>(s);
-        str = s;
-        return *this;
-    }
-    template<typename... _Arg>
-    void drawBlock(int w, _Arg... args) {
-        if (w == 0)
-            w = this->w-2;
-        wmove(win_param, ++row_param, 1);
-        for (int i = 0; i < w; i++)
-            waddch(win_param, '-');
-        //DrawBlockTemplate<0, sizeof...(args), _Arg...>(*this, w, args...);
-        _drawBlock(w, args...);
-        wmove(win_param, ++row_param, 1);
-        for (int i = 0; i < w; i++)
-            waddch(win_param, '-');
-    }
+//    WindowPainter& operator>>(char* str);
+//    WindowPainter& operator>>(std::string& str) {
+//        char s[32];
+//        this->operator>>(s);
+//        str = s;
+//        return *this;
+//    }
+//    template<typename... _Arg>
+//    void drawBlock(int w, _Arg... args) {
+//        if (w == 0)
+//            w = this->w-2;
+//        wmove(win_param, ++row_param, 1);
+//        for (int i = 0; i < w; i++)
+//            waddch(win_param, '-');
+//        //DrawBlockTemplate<0, sizeof...(args), _Arg...>(*this, w, args...);
+//        _drawBlock(w, args...);
+//        wmove(win_param, ++row_param, 1);
+//        for (int i = 0; i < w; i++)
+//            waddch(win_param, '-');
+//    }
 
-    void freshParameterWindow() {
-        wrefresh(win_param);
-    }
-
-
-private:
-    struct TempData {
-        TempData(int flag) {
-            type = 1;
-            data.flag = flag;
-        }
-
-        TempData(const char* str) {
-            type = 0;
-            strcpy(data.str, str);
-        }
-        int type;
-        union Data {
-            char str[64];
-            int flag;
-        } data;
-    };
-
-private:
-    WINDOW* win_param;
-    WINDOW* win_cmd;
-    WINDOW* win_input;
-    std::vector<std::string> strs_last;
-    std::vector<TempData> tmps;
-    int row_cmd;
-    int row_param;
-    int w;
+//    void freshParameterWindow() {
+//        wrefresh(win_param);
+//    }
 
 
-    WindowPainter(): row_cmd(0), row_param(0) {
-        initscr();
-        curs_set(0);
+//private:
+//    struct TempData {
+//        TempData(int flag) {
+//            type = 1;
+//            data.flag = flag;
+//        }
 
-        int h = LINES-1;
-        w = (COLS-1) / 2;
+//        TempData(const char* str) {
+//            type = 0;
+//            strcpy(data.str, str);
+//        }
+//        int type;
+//        union Data {
+//            char str[64];
+//            int flag;
+//        } data;
+//    };
 
-        win_param = newwin(h-2, w, 0, 0);
-        box(win_param, 0, 0);
-        scrollok(win_param, false);
-        clearok(win_param, true);
-        leaveok(win_param, false);
-        wrefresh(win_param);
+//private:
+//    WINDOW* win_param;
+//    WINDOW* win_cmd;
+//    WINDOW* win_input;
+//    std::vector<std::string> strs_last;
+//    std::vector<TempData> tmps;
+//    int row_cmd;
+//    int row_param;
+//    int w;
 
-        win_cmd = newwin(h, w, 0, w);
-        box(win_cmd, 0, 0);
-        scrollok(win_cmd, true);
-        clearok(win_cmd, true);
-        leaveok(win_cmd, false);
-        wrefresh(win_cmd);
 
-        win_input = newwin(1, w, h-2, 0);
-        scrollok(win_input, true);
-        clearok(win_input, true);
-        leaveok(win_param, true);
-        wrefresh(win_input);
+//    WindowPainter(): row_cmd(0), row_param(0) {
+//        initscr();
+//        curs_set(0);
 
-    }
+//        int h = LINES-1;
+//        w = (COLS-1) / 2;
 
-    template<typename... _Arg>
-    void _drawBlock(int w, unsigned long value, _Arg... args) {
-        wmove(win_param, ++row_param, 1);
-        waddch(win_param, '|');
-        waddch(win_param, value);
-        mvwaddch(win_param, row_param, w, '|');
-        _drawBlock(w, args...);
-    }
+//        win_param = newwin(h-2, w, 0, 0);
+//        box(win_param, 0, 0);
+//        scrollok(win_param, false);
+//        clearok(win_param, true);
+//        leaveok(win_param, false);
+//        wrefresh(win_param);
 
-    template<typename... _Arg>
-    inline void _drawBlock(int w, const char* value, _Arg... args) {
-        wmove(win_param, ++row_param, 1);
-        waddch(win_param, '|');
-        waddstr(win_param, value);
-        mvwaddch(win_param, row_param, w, '|');
-        _drawBlock(w, args...);
-    }
+//        win_cmd = newwin(h, w, 0, w);
+//        box(win_cmd, 0, 0);
+//        scrollok(win_cmd, true);
+//        clearok(win_cmd, true);
+//        leaveok(win_cmd, false);
+//        wrefresh(win_cmd);
 
-    void _drawBlock(int) { }
-};
+//        win_input = newwin(1, w, h-2, 0);
+//        scrollok(win_input, true);
+//        clearok(win_input, true);
+//        leaveok(win_param, true);
+//        wrefresh(win_input);
+
+//    }
+
+//    template<typename... _Arg>
+//    void _drawBlock(int w, unsigned long value, _Arg... args) {
+//        wmove(win_param, ++row_param, 1);
+//        waddch(win_param, '|');
+//        waddch(win_param, value);
+//        mvwaddch(win_param, row_param, w, '|');
+//        _drawBlock(w, args...);
+//    }
+
+//    template<typename... _Arg>
+//    inline void _drawBlock(int w, const char* value, _Arg... args) {
+//        wmove(win_param, ++row_param, 1);
+//        waddch(win_param, '|');
+//        waddstr(win_param, value);
+//        mvwaddch(win_param, row_param, w, '|');
+//        _drawBlock(w, args...);
+//    }
+
+//    void _drawBlock(int) { }
+//};
 #endif
 
 #endif // UTILS_H_INCLUDE

@@ -1,4 +1,4 @@
-﻿#include "solve_angle.h"
+#include "solve_angle.h"
 #include "utils.h"
 #include "ui_tool.h"
 
@@ -18,10 +18,6 @@ void AngleSolver::getAimAngle(float& angle_x, float& angle_y) {
 	cv::Mat rvec;   //平移向量，3*1，(pitch, yaw, roll)
     cv::solvePnP(pt3s_obj, data.pts_2d, mat_camera, mat_coeffs_distortion, rvec, tvec);
 
-//    //debug
-//    std::cout << "rvec : "<< rvec << "\t" << "tvec : " << tvec << std::endl;
-//    //
-
     double rm[3][3];
     cv::Mat mat_rot(3, 3, CV_64FC1, rm);
     cv::Rodrigues(rvec, mat_rot);
@@ -33,34 +29,10 @@ void AngleSolver::getAimAngle(float& angle_x, float& angle_y) {
 
     // 相机坐标系=>云台坐标系
     //相机+枪管到云台的pitch角(很小)
-
-//    //debug in
-//    std::cout << "  pt3_ptz2camera.y    :     " <<   pt3_ptz2camera.y << std::endl;
-//    std::cout << "  h_barrel2ptz        :     " <<   h_barrel2ptz     << std::endl;
-//    std::cout << "  dist_overlap _in    :     " <<   dist_overlap     << std::endl;
-
     double theta = -atan(static_cast<double>(pt3_ptz2camera.y + h_barrel2ptz))
 			/ static_cast<double>(dist_overlap);
 
-
-//    //debug out
-//    std::cout << "dist_overlap  _out    :     " << dist_overlap <<std::endl;
-//    std::cout << "theta                 :     " << theta        <<std::endl;
-//    //
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    std::cout << "dist_overlap:\t" << dist_overlap << std::endl;
 
     double r_data[] = {
         1, 0,           0,
@@ -76,29 +48,9 @@ void AngleSolver::getAimAngle(float& angle_x, float& angle_y) {
     cv::Mat r_camera_ptz(3, 3, CV_64FC1, r_data);
     cv::Mat t_camera_ptz(3, 1, CV_64FC1, t_data);
 
-
-//    //debugin
-//    std::cout << "r_camera_ptz  :   " << r_camera_ptz ;
-//    std::cout << std::endl;
-//    std::cout << "tver  :  " << tvec << std::endl;
-//    std::cout << "t_camera_ptz  :   " << t_camera_ptz << std::endl;
-
     cv::Mat position_in_ptz = r_camera_ptz * tvec - t_camera_ptz;
 
-
-//    //debug out
-//    std::cout << std::endl;
-//    std::cout << "position_in_ptz   :   " << position_in_ptz ;
-//   std::cout << std::endl;
-
-
-
-
-
-
-
     const double* _xyz = (const double*)position_in_ptz.data;
-
 
     //重力补偿pitch角度
     double t_down = 0.0;	//落地时间，s
@@ -114,15 +66,13 @@ void AngleSolver::getAimAngle(float& angle_x, float& angle_y) {
 #ifdef GUI
     UITool::log2("armor_dist", data.dist);
 #else
-//    std::cout<<"armor_dist"<<data.dist<<std::endl;
+    std::cout<<"armor_dist"<<data.dist<<std::endl;
 #endif
 
     double alpha = 0.0;
     double thta = 0.0;
     h_barrel2ptz = 0;
-
     alpha = asin(static_cast<double>(h_barrel2ptz) / sqrt(xyz[1]*xyz[1] + xyz[2]*xyz[2]));
-
     if (xyz[1] < 0) {
         thta = atan(-xyz[1]/xyz[2]);
         angle_y = static_cast<float>(-(alpha+thta)); //camera coordinate
@@ -135,23 +85,10 @@ void AngleSolver::getAimAngle(float& angle_x, float& angle_y) {
         thta = atan(xyz[1]/xyz[2]);
         angle_y = static_cast<float>((thta-alpha));   // camera coordinate
     }
-
     angle_x = static_cast<float>(atan2(xyz[0], xyz[2]));
-
-      //
-    //
-//    //debug
-//           std::cout << "angle_x:" << angle_x << std::endl;
-//           std::cout << "angle_y:" << angle_y << std::endl;
-    //
     angle_x = Tool::radian2Angle(angle_x);
     angle_y = Tool::radian2Angle(angle_y);
-        //debug
     std::cout<<"angle_x(x) : "<<angle_x << "\t" <<"angle_y(y) : "<<angle_y<<std::endl;
-//        std::cout << "angle_x:" << angle_x << std::endl;
-//        std::cout << "angle_y:" << angle_y << std::endl;
-//        std::cout << std::endl;
-//        std::cout << std::endl;
 }
 
 void AngleSolver::getBuffAngle(float &angle_x, float &angle_y) {
@@ -285,18 +222,13 @@ void AngleSolver::generate3DPoints() {
         pt_offset = data.pt_offset_world_buff;
         break;
     }
-    //debug
-    //pt_offset.x = -45; //short_(right,down,back) on ptz
-    pt_offset.x = 43;  //galaxy_(left,down,back) on ptz.
-    pt_offset.y = 20;
-    //z = 100;
 
     float x = width / 2;
     float y = height / 2;
     float z = 0;
     //待解算的世界3D坐标（+补偿）
-    pt3s_obj.push_back(cv::Point3f(-x, -y, z)+cv::Point3f(pt_offset.x, pt_offset.y,0));
-    pt3s_obj.push_back(cv::Point3f(x, -y, z)+cv::Point3f(pt_offset.x, pt_offset.y,0));
+    pt3s_obj.push_back(cv::Point3f(-x, -y, z)+cv::Point3f(pt_offset.x, pt_offset.y, 0));
+    pt3s_obj.push_back(cv::Point3f(x, -y, z)+cv::Point3f(pt_offset.x, pt_offset.y, 0));
     pt3s_obj.push_back(cv::Point3f(x, y, z)+cv::Point3f(pt_offset.x, pt_offset.y, 0));
     pt3s_obj.push_back(cv::Point3f(-x, y, z)+cv::Point3f(pt_offset.x, pt_offset.y, 0));
 }

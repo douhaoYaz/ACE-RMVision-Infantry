@@ -1,4 +1,4 @@
-﻿#ifndef SETTINGS_H_INCLUDE
+#ifndef SETTINGS_H_INCLUDE
 #define SETTINGS_H_INCLUDE
 
 #include "utils.h"
@@ -202,7 +202,7 @@ public:
 /**
  *@brief 程序各部分的中间交互数据，控制线程只读，其他线程可读可写
  */
-struct Data {  //为什么这里使用struct
+struct Data {
 public:
     int type_target=0;
     int cnt_lost=0;
@@ -233,7 +233,7 @@ public:
 
     bool flag_update_param=false;
 
-    static Data& getData() { //获取当前getData
+    static Data& getData() {
         static Data data;
         return data;
     }
@@ -250,7 +250,8 @@ public:
 
     struct ArmorParameter {
 		int th_color;				//自瞄检测算法的颜色阈值
-		int th_gray;                //自瞄检测算法的灰度阈值
+        int th_gray;
+    //自瞄检测算法的灰度阈值
         cv::Point pt_offset_cap;    //自瞄短焦相机成像偏移坐标补偿，(100, 100)为图像中心，等尺度（即装甲板的位置补偿）
     }armor;
 
@@ -318,7 +319,7 @@ private:
         other.factor_x = 100;
         other.factor_y = 100;
         other.factor_z = 100;
-        other.color_enemy = TARGET_RED;
+        other.color_enemy = TARGET_BLUE;
         other.mode_detect = DETECT_ARMOR;
         other.type_buff = SMALL_RUNE;
         other.direction = BUFF_NONE;

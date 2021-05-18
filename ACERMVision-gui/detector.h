@@ -1,4 +1,4 @@
-﻿#ifndef DETECTOR_H_INCLUDE
+#ifndef DETECTOR_H_INCLUDE
 #define DETECTOR_H_INCLUDE
 
 #include "settings.h"
@@ -17,7 +17,7 @@ public:
 	 *@param data_tmp  读入的交互参数
      *@param parameter 读入的输入参数
      */
-    Detector(cv::Mat& img_src, Setting& setting ): img(img_src) { }
+    Detector(cv::Mat& img_src, Setting& setting): img(img_src) { }
 
     virtual ~Detector();
 

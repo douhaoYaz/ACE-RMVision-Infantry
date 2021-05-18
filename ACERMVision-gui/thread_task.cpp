@@ -1,4 +1,4 @@
-﻿#include "thread_task.h"
+#include "thread_task.h"
 #include "serial.h"
 #include "kalman.hpp"
 #include "buff_detect.h"
@@ -23,7 +23,7 @@ ThreadTask::ThreadTask(int& argc, char** argv):
 #ifdef GUI
         QApplication(argc, argv), is_ready(false),
 #endif  //GUI
-        type(0), port("/dev/ttyUSB0"), data_cap(2) {
+        type(0), port("/dev/ttyUSB0"), data_cap(2) {            //初始化车辆类型type，根据路径打开串口文件初始化串口,缓存队列大小设置为2
 
     port.configurePort();
 
@@ -44,7 +44,7 @@ ThreadTask::ThreadTask(int& argc, char** argv):
 #else
     std::string path_video;
     std::string path_cap_short  = "../parameter/capture/camera_4mm_1.xml";
-    std::string path_cap_galaxy = "../parameter/capture/camera_galaxy.xml";
+    std::string path_cap_galaxy = "../parameter/capture/camera_galaxy_1.xml";
     if (argc >= 2)
         type = argv[1][0]-'0';
     if (argc == 3)
@@ -59,15 +59,9 @@ ThreadTask::ThreadTask(int& argc, char** argv):
         break;
     }
     setting.setInfantryParameter(path_cap_short);
-    //
-    //
-    //
-    //
-//    setting.setInfantryParameter(path_cap_galaxy);
-    //
-    //
-    //
-    //
+//    setting.setInfantryParameter(path_cap_short,path_cap_galaxy);
+//      setting.setInfantryParameter(path_cap_galaxy);                    //目前设定为，初始化即为步兵模式，并用工业相机
+
     if (path_video != "") {
         setting.is_video = false;
 //        setting.path_video = path_video;
@@ -85,27 +79,6 @@ ThreadTask::~ThreadTask() {
 // 图像生成线程
 void ThreadTask::imageProduce() {
 
-    Parameter& param_tmp = Parameter::getTempParameter();
-    auto onChange = [](int, void*) {
-        Data::getData().flag_update_param = true;
-    };
-    namedWindow("control");
-    cv::createTrackbar("armor_gray_th", "control", &param_tmp.armor.th_gray, 255, onChange);
-    cv::createTrackbar("armor_color_th", "control", &param_tmp.armor.th_color, 255, onChange);
-
-
-    cv::createTrackbar("armor_aim_offset_x", "control", &param_tmp.armor.pt_offset_cap.x, 200, onChange);
-    cv::createTrackbar("armor_aim_offset_y", "control", &param_tmp.armor.pt_offset_cap.y, 200, onChange);
-
-    cv::createTrackbar("buff_gray_th", "control", &param_tmp.buff.th_gray, 255, onChange);
-    cv::createTrackbar("buff_color_th", "control", &param_tmp.buff.th_color, 255, onChange);
-    cv::createTrackbar("buff_offset_cap_x", "control", &param_tmp.buff.pt_offset_cap.x, 200, onChange);
-    cv::createTrackbar("buff_offset_cap_y", "control", &param_tmp.buff.pt_offset_cap.y, 200, onChange);
-    cv::createTrackbar("buff_world_offset_x", "control", &param_tmp.buff.x_pt_offset_world, 1000, onChange);
-    cv::createTrackbar("buff_offset_follow_x", "control", &param_tmp.buff.pt_offset_follow_delay.x, 200, onChange);
-    cv::createTrackbar("buff_offset_follow_y", "control", &param_tmp.buff.pt_offset_follow_delay.y, 200, onChange);
-    cv::createTrackbar("gimbal_offset_gravity", "control", &param_tmp.angle.gravity_offset, 10, onChange);
-
     Data& data = Data::getData();
     Parameter& param = Parameter::getParameter();
 #ifdef GUI
@@ -121,22 +94,22 @@ void ThreadTask::imageProduce() {
     if (flag_end_thread)
         return;
 
-    std::shared_ptr<Capture> cap_short;		//短焦/单摄
+    std::shared_ptr<Capture> cap_short;		//短焦/单摄             //新建智能指针对象cap_short
     if (setting.is_video)	//视频模式
-        cap_short.reset(new Capture(setting.path_video, setting.sz_short));
+        cap_short.reset(new Capture(setting.path_video, setting.sz_short));     //取消智能指针cap_short与相关指针的关联，并指向新建的Capture类对象
     else {
         cap_short.reset(new Capture(setting.sz_short, setting.length_f_short,
                 CAPTURE_SHORT, setting.type_driver_short));
     }
 
-    std::shared_ptr<Capture> cap_long;
+    std::shared_ptr<Capture> cap_long;                             //新建智能指针对象cap_short
 	if (setting.is_short_only == false)
         cap_long.reset(new Capture(setting.sz_long, setting.length_f_long,
                 CAPTURE_LONG, setting.type_driver_long));
 
     std::shared_ptr<Capture> cap_prime = cap_short;
 
-    CameraChooser chooser_cap(setting);
+    CameraChooser chooser_cap(setting);                            //切换相机策略，长->短或短->长
 
     while(1) {
 
@@ -223,11 +196,10 @@ void ThreadTask::imageProcess() {
     //长焦角度解算
     std::shared_ptr<AngleSolver> solver_long;
 	if (setting.is_short_only == false)
-        solver_long.reset(new AngleSolver(setting.mat_camera_long, setting.mat_coeffs_distortion_long,
+    solver_long.reset(new AngleSolver(setting.mat_camera_long, setting.mat_coeffs_distortion_long,
             setting.length_f_long, setting));
     std::shared_ptr<AngleSolver> solver = solver_short;
 
-    //
     std::shared_ptr<Capture> cap_assisant;
     if (setting.is_prime_only == false)
         cap_assisant.reset(new Capture(setting.sz_short, setting.length_f_short,
@@ -335,25 +307,19 @@ void ThreadTask::imageProcess() {
                     }
                 }
             }
-            //
-            angle_x = Tool::limitAngle(angle_x,8);
-            angle_y = Tool::limitAngle(angle_y,4);
-            //
-
+           // angle_x = Tool::limitAngle(angle_x, 4);
+            //angle_y = Tool::limitAngle(angle_y, 4);
             port.sendXYZ(angle_x, angle_y, 0);
-
 #ifdef GUI
             UITool::log2("angle_x", angle_x);
             UITool::log2("angle_y", angle_y);
 #else
-//            std::cout<<"angle_x(yaw):"<<angle_x<<std::endl;
-//            std::cout<<"angle_y(pitch):"<<angle_y<<std::endl;
-//            std::cout<<"distance : "<< data.dist <<std::endl;
+            //std::cout<<"angle_x(x) : "<<angle_x << "\t" <<"angle_y(y) : "<<angle_y<<std::endl;
 #endif
         }
 
         //显示图像
-        //show();
+        show();
         t = timer.end();
 #ifdef GUI
         UITool::log2("fps", 1000./t);
@@ -377,8 +343,6 @@ void ThreadTask::imageProcess() {
 }
 
 void ThreadTask::control() {
-
-#ifdef CUI
     Parameter& param_tmp = Parameter::getTempParameter();
     auto onChange = [](int, void*) {
         Data::getData().flag_update_param = true;
@@ -400,6 +364,8 @@ void ThreadTask::control() {
     cv::createTrackbar("buff_offset_follow_x", "control", &param_tmp.buff.pt_offset_follow_delay.x, 200, onChange);
     cv::createTrackbar("buff_offset_follow_y", "control", &param_tmp.buff.pt_offset_follow_delay.y, 200, onChange);
     cv::createTrackbar("gimbal_offset_gravity", "control", &param_tmp.angle.gravity_offset, 10, onChange);
+#ifdef CUI
+
 
     while (1) {
         std::string str;

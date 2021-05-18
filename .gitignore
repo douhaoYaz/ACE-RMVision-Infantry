@@ -1,0 +1,3 @@
+build/		#忽略build目录下的所有文件
+ACERMVision.pro.user*		#忽略所有.user文件
+

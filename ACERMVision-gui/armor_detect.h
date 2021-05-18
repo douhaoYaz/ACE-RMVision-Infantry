@@ -1,4 +1,4 @@
-﻿#ifndef ARMOR_DETECT_INCLUDE
+#ifndef ARMOR_DETECT_INCLUDE
 #define ARMOR_DETECT_INCLUDE
 
 #include "utils.h"
@@ -36,7 +36,7 @@ enum ArmorChooseRule {
  */
 struct LEDStick {
 
-    cv::RotatedRect rrect;	//灯条的矩形区域 灯条的旋转矩形区域
+    cv::RotatedRect rrect;	//灯条的矩形区域
     float length;           //灯条长度
     bool is_match;          //是否成功配对，用于识别陀螺模式
 
@@ -85,9 +85,7 @@ public:
 	 *@param path_caffe_model caffe权重文件(.caffemodel)
 	 */
 	ArmorClassifier(std::string path_dnn_net, std::string path_dnn_model) {
-        //重置背景
         resetBackground();
-        //读取caffe网络文件路径和caffe权重文件
 		net = cv::dnn::readNetFromCaffe(path_dnn_net, path_dnn_model);
 	}
 
@@ -108,7 +106,6 @@ public:
      *@brief 重置背景
      */
     void resetBackground() {
-        // cv::Mat img_bkg;	号码分类器一览背景
         img_bkg = cv::Mat::zeros(64*2, 64*8, CV_8UC1);
     }
 
@@ -122,16 +119,12 @@ public:
 	 */
 	void getResult(const cv::Mat& img, int& type_sz, int& id);
 
-    /**
-     *draw函数还有待修改
-     *现在的功能只是赋值 copyTo
-     */
 	void draw(const cv::Mat& img, int sz, int id) {
 		int x = id * 64;
 		int y = sz * 64;
 		cv::Rect rect(x, y, 64, 64);
 
-        img.copyTo(img, img_bkg);// cv::Mat img_bkg;	//号码分类器一览背景
+		img.copyTo(img, img_bkg);
 	}
 };
 
@@ -177,7 +170,7 @@ public:
  *@brief 装甲类
  *@主要为两个灯条之间的装甲区域
  */
-class Armor: public LEDPair {   //装甲类公有继承灯条对类
+class Armor: public LEDPair {
 public:
 	// 3           2
 	//  II-------II
@@ -185,8 +178,8 @@ public:
 	//  II-------II
 	// 0           1
     cv::Size size_img;  //图像的尺寸
-    cv::Point pts[4];   //装甲矩形的四个点(透视变换前的四个点)
-    int type_armor;     //装甲类型（小装甲、大装甲）
+    cv::Point pts[4];   //装甲矩形的四个点
+    int type_armor;     //装甲类型
 	cv::Mat img;		//装甲区域对应部分二值
     int id;             //装甲号码牌，0为未知，正数为对应号码
     bool is_empty;      //是否为空
@@ -264,8 +257,7 @@ public:
  *@brief 装甲识别类
  *@通过拟合灯条来识别装甲
  */
-//作用不断拟合更新ROI区域
-class ArmorDetector: public Detector { //
+class ArmorDetector: public Detector {
 public:
     cv::Mat img_roi;            //图像roi区域
     cv::Point pt_roi;           //roi图像偏移，即roi左上角点在源图像的位置
@@ -307,12 +299,9 @@ public:
      *@brief  装甲识别的主要函数
      *@return 是否识别到装甲
      */
-    bool run() override; //override,c++11特性 必须重写该基类的虚函数，否则编译会出错
+    bool run() override;
 
 
-    /**
-     *找出图像中的装甲
-     */
     static bool findArmor(cv::Mat& img, Parameter& param,
             float angle_err=5.5f, float intensity_avg=100.f);
 private:

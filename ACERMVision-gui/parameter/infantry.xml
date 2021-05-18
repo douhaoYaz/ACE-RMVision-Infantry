@@ -4,7 +4,7 @@
 <h_barrel2ptz>0</h_barrel2ptz>
 <h_car>410</h_car>
 <pt3_ptz2camera>
-  0. 0. 0.</pt3_ptz2camera>
+  -45. 0. 0.</pt3_ptz2camera>
 <path_param_short>../parameter/capture/camera_4mm_1.xml</path_param_short>
 <is_short_only>0</is_short_only>
 <is_prime_only>1</is_prime_only>
