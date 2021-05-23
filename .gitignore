@@ -1,3 +1,8 @@
 build/		#忽略build目录下的所有文件
 /ACERMVision-gui/*.user		#忽略所有.user文件
+*.user
+*.pro.user
+*.user*
+/ACERMVision-gui/*.pro.user
+/ACERMVision-gui/*.user*
 
