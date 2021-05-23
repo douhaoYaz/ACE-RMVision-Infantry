@@ -307,8 +307,8 @@ void ThreadTask::imageProcess() {
                     }
                 }
             }
-           // angle_x = Tool::limitAngle(angle_x, 4);
-            //angle_y = Tool::limitAngle(angle_y, 4);
+            angle_x = Tool::limitAngle(angle_x, 6);
+            angle_y = Tool::limitAngle(angle_y, 4);
             port.sendXYZ(angle_x, angle_y, 0);
 #ifdef GUI
             UITool::log2("angle_x", angle_x);
