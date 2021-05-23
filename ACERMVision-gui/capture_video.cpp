@@ -477,6 +477,8 @@ Capture::Capture(cv::Size size, int length_focus, int type_focus,
     case CAPTURE_DRIVER_CV: default:
         type_driver = CAPTURE_DRIVER_CV;
         cap.cap_cv = new cv::VideoCapture("/dev/video"+std::to_string(id++));
+        cap.cap_cv->set(cv::CAP_PROP_AUTO_EXPOSURE, 0.25);      //where 0.25 means "manual exposure, manual iris"
+        cap.cap_cv->set(cv::CAP_PROP_EXPOSURE, -1);             //短焦相机只有两档，参数为正是高曝光，参数为负是低曝光
         break;
     case CAPTURE_DRIVER_V4L2:
         cap.cap_v4l2 = new CaptureVideo();
