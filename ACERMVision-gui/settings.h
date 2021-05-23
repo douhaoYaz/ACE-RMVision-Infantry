@@ -326,7 +326,7 @@ private:
         other.flag_save = false;
 
         armor.th_color = 16;
-        armor.th_gray = 25;
+        armor.th_gray = 60;
         buff.th_color = 15;
         buff.th_gray = 78;
 
