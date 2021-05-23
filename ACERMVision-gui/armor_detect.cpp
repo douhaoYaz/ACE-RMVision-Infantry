@@ -390,8 +390,9 @@ void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity
     SticksSet led_sticks;
     findLamps(img_gray, led_sticks);
 
-    cv::Point pt_aim = cv::Point(img.cols/2 + param.armor.pt_offset_cap.x - 100, \
-            img.rows/2 + 100 - param.armor.pt_offset_cap.y) - pt_roi;    //补偿后的中心
+//    cv::Point pt_aim = cv::Point(img.cols/2 + param.armor.pt_offset_cap.x - 100, \
+//            img.rows/2 + 100 - param.armor.pt_offset_cap.y) - pt_roi;    //补偿后的中心
+    cv::Point pt_aim = cv::Point(img.cols/2,  img.rows/2) - pt_roi;    //补偿后的中心
     typedef std::set<Armor, Armor::ArmorComparer> ArmorSet;
     Armor::ArmorComparer comparer_arm(pt_aim);
     ArmorSet arms(comparer_arm);
@@ -465,11 +466,15 @@ void ArmorDetector::getPoints(Armor& arm_target) {
 //    cv::Point pt_offset = cv::Point(100, 100) - static_cast<cv::Point>(param.armor.pt_offset_cap);
 
     arm_target.led_sticks[0].rrect.points(pts_tmp);
-    pts_2d[0] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[1]) + pt_offset);
-    pts_2d[3] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[0]) + pt_offset);
+//    pts_2d[0] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[1]) + pt_offset);
+//    pts_2d[3] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[0]) + pt_offset);
+    pts_2d[0] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[1]));
+    pts_2d[3] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[0]));
     arm_target.led_sticks[1].rrect.points(pts_tmp);
-    pts_2d[1] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[2]) + pt_offset);
-    pts_2d[2] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[3]) + pt_offset);
+//    pts_2d[1] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[2]) + pt_offset);
+//    pts_2d[2] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[3]) + pt_offset);
+    pts_2d[1] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[2]));
+    pts_2d[2] = convertSourcePoint(static_cast<cv::Point>(pts_tmp[3]));
 
     //瞄准点
     cv::Point2f pt_aim = cv::Point((pts_2d[0].x + pts_2d[2].x)/2,(pts_2d[0].y + pts_2d[2].y)/2);
