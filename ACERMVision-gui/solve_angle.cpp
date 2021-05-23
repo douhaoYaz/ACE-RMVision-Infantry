@@ -48,7 +48,8 @@ void AngleSolver::getAimAngle(float& angle_x, float& angle_y) {
     cv::Mat r_camera_ptz(3, 3, CV_64FC1, r_data);
     cv::Mat t_camera_ptz(3, 1, CV_64FC1, t_data);
 
-    cv::Mat position_in_ptz = r_camera_ptz * tvec - t_camera_ptz;
+//    cv::Mat position_in_ptz = r_camera_ptz * tvec - t_camera_ptz;
+    cv::Mat position_in_ptz = tvec - t_camera_ptz;
 
     const double* _xyz = (const double*)position_in_ptz.data;
 
