@@ -3,6 +3,86 @@
 
 #include <opencv2/opencv.hpp>
 
+// 二阶ｋａｌｍａｎ滤波
+class Predict
+{
+public:
+    Predict();
+
+    /**
+     *@brief 初始化，参数和opencv的一致
+     *@param Qp          角度的系统误差
+     *@param Qv          速度的系统误差
+     *@param Rp          角度的测量误差
+     *@param Rv          速度的测量误差
+     */
+    Predict(float Qp, float Qv, float Rp,float Rv,float dta, float pre_dta);
+
+    /**
+     *@brief 清除卡尔曼滤波器的数据
+     */
+    void ClearFilters(void);
+
+    /**
+     *@brief 初始化，参数和opencv的一致
+     *@param Qp          角度的系统误差
+     *@param Qv          速度的系统误差
+     *@param Rp          角度的测量误差
+     *@param dta         时间的间隔
+     *@param pre_dta     上一次时间的变化
+     */
+    void setQRT(int Qp, int Qv, int Rp , int dta, float pre_dta);
+
+    /**
+     *@brief 设置时间的间隔
+     *@param dta         时间的间隔
+     * */
+    void setdelta(float t){
+        delta = t;
+    }
+
+    /**
+     *@brief 卡尔曼运算
+     *@param gim_angle        角度
+     *@param v                速度
+     *@param u                加速度
+     * */
+    float run_position(float gim_angle);
+    float run_position(float gimbal_anlge, float v);
+    float run_position(float gimbal_anlge, float v, float u);
+
+    /**
+     *@brief 获得角速度
+     *@param v                速度
+     * */
+    float getSpeed()
+    {
+        return v;
+    }
+
+    bool exit_flag;
+private:
+    cv::Mat Qvar;   // 两个观测变量系统误差
+    cv::Mat R;      // 单观测变量方差
+    cv::Mat Rvar;   // 两个观测变量协方差
+    cv::Mat A;      //角度与速度的状态方程
+    cv::Mat B;      //加速度的状态方程
+    cv::Mat H;      // 单变量观测矩阵
+    cv::Mat H2;     // 两变量观测矩阵
+    float delta;    //变量deltaT：时间的变化
+    float pre_delta;//变量pre_deltaT：上一次时间的变化
+
+    //state
+    cv::Mat po;         //最小均方误差
+    cv::Mat po_pre;     //修正的最小均方误差
+    cv::Mat x_pre;    //最新的测量角度,即预测值
+    cv::Mat kg;       //卡尔曼增益
+    cv::Mat xkf;      //状态值,即根据预测值计算出当前的值，会受到系统误差 Q，测量误差 R影响
+    float v;          //速度
+    float last_v;      //上一次速度
+    float predict;  //最终的角度预测的值
+};
+
 /**
  *@brief 通用卡尔曼预测器
  *@加了带步长的预测
