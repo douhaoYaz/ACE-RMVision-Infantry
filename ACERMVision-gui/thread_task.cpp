@@ -307,8 +307,41 @@ void ThreadTask::imageProcess() {
                     }
                 }
             }
+
+		// std::cout<<"angle_x(yaw):"<<angle_x<<"         ";
+           // std::cout<<"angle_y(pitch):"<<angle_y<<std::endl;
+
+            if (last_W_x != 0 || last_W_y != 0) //最强的滤波器
+            {
+                t = timer.end();
+                v_x = (angle_x - last_angle_x) / t;
+                a_x = (v_x - last_W_x) / t;
+                v_y = (angle_y - last_angle_y) / t;
+                a_y = (v_y - last_W_y) / t;
+                last_W_x = v_x;
+                last_W_y = v_y;
+                angle_x = solver->predict_x.run_position(angle_x,v_x, a_x);
+                angle_y = solver->predict_y.run_position(angle_y,v_y, a_y);
+            }
+            else if (last_angle_x == 0.0 && last_angle_y == 0.0) //当没有历史角度时使用，只使用角度滤波器
+            {
+                angle_x = solver->predict_x.run_position(angle_x);
+                angle_y = solver->predict_y.run_position(angle_y);
+            }
+            else    //存在历史角度，使用的有角加速度和角度的滤波器
+            {
+                v_x = (angle_x - last_angle_x) / t;
+                v_y = (angle_y - last_angle_y) / t;
+                last_W_x = v_x;
+                last_W_y = v_y;
+                angle_x = solver->predict_x.run_position(angle_x, v_x);
+                angle_y = solver->predict_y.run_position(angle_y, v_y);
+            }
+    
             angle_x = Tool::limitAngle(angle_x, 6);
             angle_y = Tool::limitAngle(angle_y, 4);
+	    last_angle_x = angle_x;
+            last_angle_y = angle_y;
             port.sendXYZ(angle_x, angle_y, 0);
 #ifdef GUI
             UITool::log2("angle_x", angle_x);
