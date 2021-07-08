@@ -32,7 +32,8 @@ public:
     bool flag_reset;    //枪管归中复位标志
     
     float dist_overlap; //距离补偿（？）
-    
+    Predict predict_x;
+    Predict predict_y;
 
 	AngleSolver(cv::Mat& matrix_camera, cv::Mat& matrix_coeffs_distortion,
             int length_focus, Setting& setting): mat_camera(matrix_camera),
