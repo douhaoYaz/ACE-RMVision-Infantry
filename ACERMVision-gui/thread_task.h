@@ -61,7 +61,10 @@ public:
     Setting setting;
     CaptureData data_cap;
     int code_status;
-
+    float last_angle_x = 0.0;
+    float last_angle_y = 0.0;
+    float last_W_x = 0.0;
+    float last_W_y = 0.0;
 public:
     ThreadTask(int& argc, char** argv);
     ~ThreadTask();
