@@ -173,7 +173,10 @@ void ThreadTask::imageProcess() {
 	cv::Mat image;
 	float angle_x = 0.0;
 	float angle_y = 0.0;
-
+	float v_x = 0.0;
+        float v_y = 0.0;
+        float a_x = 0.0;
+        float a_y = 0.0;
 	double t;
 	Timer timer;
 
@@ -310,10 +313,9 @@ void ThreadTask::imageProcess() {
 
 		// std::cout<<"angle_x(yaw):"<<angle_x<<"         ";
            // std::cout<<"angle_y(pitch):"<<angle_y<<std::endl;
-
+	    t = timer.end();
             if (last_W_x != 0 || last_W_y != 0) //最强的滤波器
             {
-                t = timer.end();
                 v_x = (angle_x - last_angle_x) / t;
                 a_x = (v_x - last_W_x) / t;
                 v_y = (angle_y - last_angle_y) / t;
