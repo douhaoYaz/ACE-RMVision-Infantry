@@ -25,7 +25,7 @@ Predict::Predict(float Qp, float Qv, float Rp,float Rv,float deltaTime, float pr
     B = (cv::Mat_<float>(2,1) << 1/2*pow(deltaTime,2), deltaTime);
     //测量矩阵
     H = (cv::Mat_<float>(1,2) << 1, 0);
-    H2 = (cv::Mat_<float>(1, 2) << 1, 1);
+    H2 = (cv::Mat_<float>(2, 2) << 1, 1, 0, 1);
     //测量误差
     R = static_cast<double>(Rp);
     Rvar = (cv::Mat_<float>(2,2)<< Rp, 0, 0, Rv);
