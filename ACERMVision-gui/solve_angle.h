@@ -41,7 +41,8 @@ public:
             speed_bullet(setting.speed_bullet), dist_buff(setting.dist_buff),
             h_buff(setting.h_buff), h_car(setting.h_car), r_buff(setting.r_buff),
             h_barrel2ptz(setting.h_barrel2ptz) {
-
+	predict_x = Predict(0.01f,0.01f,0.01f,0.01f,1.0f,3.0f);
+        predict_y = Predict(0.01f,0.01f,0.01f,0.01f,1.0f,3.0f);
         pt3_ptz2camera = static_cast<cv::Point3f>(setting.pt3_ptz2camera);
         cv::Mat(pt3s_obj).convertTo(mat_ptobj, CV_32F);
 	}
