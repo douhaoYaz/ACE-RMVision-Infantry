@@ -313,7 +313,7 @@ void ThreadTask::imageProcess() {
 
 		// std::cout<<"angle_x(yaw):"<<angle_x<<"         ";
            // std::cout<<"angle_y(pitch):"<<angle_y<<std::endl;
-	    t = timer.end();
+	    //t = timer.end();
             if (last_W_x != 0 || last_W_y != 0) //最强的滤波器
             {
                 v_x = (angle_x - last_angle_x) / t;
@@ -355,7 +355,7 @@ void ThreadTask::imageProcess() {
 
         //显示图像
         show();
-        t = timer.end();
+        //t = timer.end();
 #ifdef GUI
         UITool::log2("fps", 1000./t);
 #else
