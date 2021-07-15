@@ -65,6 +65,7 @@ public:
     float last_angle_y = 0.0;
     float last_W_x = 0.0;
     float last_W_y = 0.0;
+    double t = 1.5;
 public:
     ThreadTask(int& argc, char** argv);
     ~ThreadTask();
