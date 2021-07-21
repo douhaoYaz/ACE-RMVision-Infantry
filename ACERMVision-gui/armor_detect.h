@@ -47,7 +47,7 @@ struct LEDStick {
      *@param r 灯条轮廓拟合出来的旋转矩阵
      */
     LEDStick(const cv::RotatedRect& r) {
-		rrect = r;
+        rrect = r;
         length = rrect.boundingRect2f().size().height;
     }
 };
@@ -62,33 +62,44 @@ public:
 
 #if TYPE_ARMOR_CLASSIFIER == 0
 
-	cv::HOGDescriptor* hog;             //hog特征
-	cv::Ptr<cv::ml::SVM> classifier;	//装甲SVM分类器
+    cv::HOGDescriptor* hog;             //hog特征
+    cv::Ptr<cv::ml::SVM> classifier;	//装甲SVM分类器
 
     /**
      *@brief 初始化svm分类器
      *@param path_svm svm分类器路径(.xml)
      */
-	ArmorClassifier(std::string path_svm) {
-		hog = new cv::HOGDescriptor(cv::Size(64, 64), cv::Size(16, 16),
-				cv::Size(8, 8), cv::Size(8, 8), 9);
-		classifier = cv::Algorithm::load<cv::ml::SVM>(path_svm);
-	}
+    ArmorClassifier(std::string path_svm) {
+        hog = new cv::HOGDescriptor(cv::Size(64, 64), cv::Size(16, 16),
+                cv::Size(8, 8), cv::Size(8, 8), 9);
+        classifier = cv::Algorithm::load<cv::ml::SVM>(path_svm);
+    }
 
 #elif TYPE_ARMOR_CLASSIFIER == 1
 
-	cv::dnn::Net net;	//caffe网络
+    cv::dnn::Net net;	//caffe网络
 
-	/**
-	 *@brief 初始化
-	 *@param path_caffe_net   caffe网络文件路径(.protext/.prototxt)
-	 *@param path_caffe_model caffe权重文件(.caffemodel)
-	 */
-	ArmorClassifier(std::string path_dnn_net, std::string path_dnn_model) {
+    /**
+     *@brief 初始化
+     *@param path_caffe_net   caffe网络文件路径(.protext/.prototxt)
+     *@param path_caffe_model caffe权重文件(.caffemodel)
+     */
+    ArmorClassifier(std::string path_dnn_net, std::string path_dnn_model) {
         resetBackground();
-		net = cv::dnn::readNetFromCaffe(path_dnn_net, path_dnn_model);
-	}
-
+        net = cv::dnn::readNetFromCaffe(path_dnn_net, path_dnn_model);
+    }
+#elif TYPE_ARMOR_CLASSIFIER == 2
+    cv::dnn::Net net;        //lenet网络
+    /**
+     *@brief 初始化
+     *@param path_dnn_net   lenet模型路径(.protext/.prototxt)
+     */
+    ArmorClassifier(std::string path_dnn_net) {
+        //重置背景
+        resetBackground();
+        //读取lenet模型
+        net = cv::dnn::readNetFromONNX(path_dnn_net);
+    }
 #endif
 
 public:
@@ -109,23 +120,23 @@ public:
         img_bkg = cv::Mat::zeros(64*2, 64*8, CV_8UC1);
     }
 
-	/**
-	 *@brief 分类
-	 *@输入：
-	 *	@param img     待分类图像
-	 *@输出：
-	 *	@param type_sz 装甲大小类型
-	 *	@param id      得到的id
-	 */
-	void getResult(const cv::Mat& img, int& type_sz, int& id);
+    /**
+     *@brief 分类
+     *@输入：
+     *	@param img     待分类图像
+     *@输出：
+     *	@param type_sz 装甲大小类型
+     *	@param id      得到的id
+     */
+    void getResult(const cv::Mat& img, int& type_sz, int& id);
 
-	void draw(const cv::Mat& img, int sz, int id) {
-		int x = id * 64;
-		int y = sz * 64;
-		cv::Rect rect(x, y, 64, 64);
+    void draw(const cv::Mat& img, int sz, int id) {
+        int x = id * 64;
+        int y = sz * 64;
+        cv::Rect rect(x, y, 64, 64);
 
-		img.copyTo(img, img_bkg);
-	}
+        img.copyTo(img, img_bkg);
+    }
 };
 
 /**
@@ -172,15 +183,15 @@ public:
  */
 class Armor: public LEDPair {
 public:
-	// 3           2
-	//  II-------II
-	//  II   5   II
-	//  II-------II
-	// 0           1
+    // 3           2
+    //  II-------II
+    //  II   5   II
+    //  II-------II
+    // 0           1
     cv::Size size_img;  //图像的尺寸
     cv::Point pts[4];   //装甲矩形的四个点
     int type_armor;     //装甲类型
-	cv::Mat img;		//装甲区域对应部分二值
+    cv::Mat img;		//装甲区域对应部分二值
     int id;             //装甲号码牌，0为未知，正数为对应号码
     bool is_empty;      //是否为空
 
@@ -193,16 +204,16 @@ public:
 
     Armor(): is_empty(true) { }
 
-	/**
-	 *@brief 获取roi图像
-	 *@param img 装甲板所处背景
-	 *@return 得出图像是否可用
-	 */
-	bool getROIImage(const cv::Mat& img);
+    /**
+     *@brief 获取roi数字图像
+     *@param img 装甲板所处背景
+     *@return 得出图像是否可用
+     */
+    bool getROIImage(const cv::Mat& img,cv::Mat& img_num);
 
-	/**
-	 *@brief 根据尺寸获取装甲板类型
-	 */
+    /**
+     *@brief 根据尺寸获取装甲板类型
+     */
     void getTypeBySize();
 
 public:
@@ -217,7 +228,7 @@ public:
     };
 
 private:
-	static std::vector<cv::Point2f> points; //透视变换后的四个点
+    static std::vector<cv::Point2f> points; //透视变换后的四个点
 };
 
 /**
@@ -248,7 +259,7 @@ public:
 
     /**
      *@brief 没有检测到的情况，根据计数器决定是否重置
-	 *@param sz_img 图像尺寸
+     *@param sz_img 图像尺寸
      */
     void update(cv::Size sz_img);
 };
@@ -265,34 +276,42 @@ public:
     ArmorClassifier classifier;	//装甲分类器
     DestoryableWindow win_roi;	//ROI对应的窗口
     bool is_useroi = true;             //是否使用roi
-    bool is_classifier;         //是否使用分类器
-    int rule_choose;            //选择装甲的规则
-    bool is_ignore2;			//是否忽略工程
-	
+    bool is_classifier = true;         //是否使用分类器
+    int rule_choose;                  //选择装甲的规则
+    bool is_ignore2 =true;		    	//是否忽略工程
+
 #if TYPE_ARMOR_CLASSIFIER == 0
-	/**
-	 *@brief 初始化
-	 *@param img_src   要读入的相机画面
-	 *@param setting   读入的固定参数
-	 *@param data_tmp  读入的交互参数
-	 */
+    /**
+     *@brief 初始化
+     *@param img_src   要读入的相机画面
+     *@param setting   读入的固定参数
+     *@param data_tmp  读入的交互参数
+     */
     ArmorDetector(cv::Mat& img_src, Setting& setting, Data& data_tmp):
             Detector(img_src, setting, data_tmp),
             classifier(setting.path_classifier_arm_svm),
             history(data_tmp) { }
 
 #elif TYPE_ARMOR_CLASSIFIER == 1
-		/**
-	 *@brief 初始化
-	 *@param img_src   要读入的相机画面
-	 *@param setting   读入的固定参数
-	 *@param data_tmp  读入的交互参数
-	 */
+        /**
+     *@brief 初始化
+     *@param img_src   要读入的相机画面
+     *@param setting   读入的固定参数
+     *@param data_tmp  读入的交互参数
+     */
     ArmorDetector(cv::Mat& img_src, Setting& setting) :
             Detector(img_src, setting),
             classifier(setting.path_classifier_arm_caffe_net,
             setting.path_classifier_arm_caffe_model) { }
-
+#elif TYPE_ARMOR_CLASSIFIER == 2
+     /**
+     *@brief 初始化
+     *@param img_src   要读入的相机画面
+     *@param setting   读入的固定参数
+     */
+    ArmorDetector(cv::Mat& img_src, Setting& setting) :
+            Detector(img_src, setting),
+            classifier(setting.path_classifier_arm_lenet_model) { }
 #endif
 
     /**

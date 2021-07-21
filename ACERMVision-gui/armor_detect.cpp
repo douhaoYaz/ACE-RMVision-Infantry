@@ -14,7 +14,7 @@ LEDPair::LEDPair(const LEDStick& l1, const LEDStick& l2) {
     angle_err = fabs(l1.rrect.angle - l2.rrect.angle);
     rate_len = fabs(l1.length / l2.length);
     rect.width = abs(static_cast<int>(l1.rrect.center.x - l2.rrect.center.x));
-    rect.height = static_cast<int>((l1.rrect.size.height + l1.rrect.size.height) / 2);
+    rect.height = static_cast<int>((l1.rrect.size.height + l2.rrect.size.height) / 2);
     pt_cen.x = static_cast<int>((l1.rrect.center.x + l2.rrect.center.x) / 2);
     pt_cen.y = static_cast<int>((l1.rrect.center.y + l2.rrect.center.y) / 2);
 
@@ -45,8 +45,8 @@ bool LEDPair::isSuitableSize() const {
 }
 
 std::vector<cv::Point2f> Armor::points = {
-	cv::Point(0, 64), cv::Point(64, 64),
-	cv::Point(64, 0), cv::Point(0, 0)
+    cv::Point(0, 64), cv::Point(64, 64),
+    cv::Point(64, 0), cv::Point(0, 0)
 };
 
 Armor::Armor(const LEDPair& pair, const cv::Size& size_image):
@@ -77,51 +77,32 @@ Armor::Armor(const LEDPair& pair, const cv::Size& size_image):
     pts[3] = cv::Point(rect.x, rect.y);
 }
 
-bool Armor::getROIImage(const cv::Mat& img_src) {
-
-	std::vector<cv::Point2f> points(pts, pts + 4);							//装甲矩形的四个点，放入透视变换
-	cv::Mat img_gray = cv::Mat::zeros(64, 64, CV_8UC3);						//透视变换后的图像
-	cv::Mat mat_trans = cv::getPerspectiveTransform(points, Armor::points); //透视变换矩阵
-    cv::warpPerspective(img_src, img_gray, mat_trans, img_gray.size());
-	cv::cvtColor(img_gray, img_gray, cv::COLOR_BGR2GRAY);
-	//填充两侧灯条，防止影响
-	cv::rectangle(img_gray, cv::Point(0, 0), cv::Point(9, 63), BGR::all(0), -1);
-	cv::rectangle(img_gray, cv::Point(54, 0), cv::Point(63, 63), BGR::all(0), -1);
-	cv::equalizeHist(img_gray, img_gray);		//直方图均匀
-
-    cv::Mat img_bin;        //二值图像
-    double th;              //大津得出来的阈值
-    int area_light;         //亮点面积
-    int area_all;           //总面积
-    double ratio;           //亮点面积比例
-    th = cv::threshold(img_gray, img_bin, 5, 255, cv::THRESH_OTSU);
-    area_light = cv::countNonZero(img_bin);
-    area_all = 64*64;
-    ratio = 1.0 * area_light / area_all;
-
-    static int th_const = 100;
-
-	if ((ratio < 0.1 && th > th_const) || (ratio > 0.5 && th < th_const)) {
-		//大津无效，改为固定阈值
-		cv::threshold(img_gray, img_bin, th_const, 255, cv::THRESH_BINARY);
-
-		area_light = cv::countNonZero(img_bin);
-		ratio = 1.0 * area_light / area_all;
-		if (ratio < 0.1)
-			th_const = th_const - 1 == 0 ? 1 : th_const - 1;
-		else if (ratio > 0.5)
-			th_const = th_const + 1 == 255 ? 254 : th_const + 1;
-		else {
-			img = img_bin;
-			return true;
-		}
-	}
-	else if (ratio > 0.1 && ratio < 0.5) {
-		img = img_bin;
-		return true;
-	}
-	img = cv::Mat();
-	return false;
+bool Armor::getROIImage(const cv::Mat& img_src,cv::Mat& img_num) {
+    cv::Mat dst=img_src.clone();
+    double gammaa=0.15;
+    unsigned char lut[256];
+    for(int i=0;i < 256;i++)
+        lut[i] = cv::saturate_cast<uchar>(pow((float)i/255.0,gammaa) * 255.0f);
+    cv::MatIterator_<cv::Vec3b> it, end;
+    for( it = dst.begin<cv::Vec3b>(), end = dst.end<cv::Vec3b>(); it != end; it++ ){
+        (*it)[0] = lut[((*it)[0])];
+        (*it)[1] = lut[((*it)[1])];
+        (*it)[2] = lut[((*it)[2])];
+    }
+    std::vector<cv::Point2f> points(pts, pts + 4);
+    cv::Mat img_gray = cv::Mat::zeros(64, 64, CV_8UC1);
+    cv::Mat mat_trans = cv::getPerspectiveTransform(points, Armor::points);
+    cv::warpPerspective(dst, img_gray, mat_trans, img_gray.size());
+    cv::cvtColor(img_gray, img_gray, cv::COLOR_BGR2GRAY);
+    cv::rectangle(img_gray, cv::Point(0, 0), cv::Point(15, 63), BGR::all(0), -1);
+    cv::rectangle(img_gray, cv::Point(50, 0), cv::Point(63, 63), BGR::all(0), -1);
+    cv::equalizeHist(img_gray, img_gray);
+    cv::medianBlur(img_gray,img_gray,3);
+    resize(img_gray,img_gray,cv::Size(48,48),0,0,cv::INTER_LINEAR);
+    //Mat img_num(img_gray.size(),CV_8UC3);
+    cvtColor(img_gray, img_num, cv::COLOR_GRAY2BGR);
+    cv::imshow("num",img_num);
+    return true;
 }
 
 void Armor::getTypeBySize() {
@@ -135,24 +116,20 @@ void Armor::getTypeBySize() {
         type_armor = TARGET_SMALL_ARMOR;
 }
 
-
-
-
-
 #if TYPE_ARMOR_CLASSIFIER == 0
 
 void ArmorClassifier::getResult(const cv::Mat& img, int& id, int& type_sz) {
 
-	std::vector<float> v_descriptors;			//存放结果
-	hog->compute(img_num, v_descriptors, cv::Size(1, 1), cv::Size(0, 0));    //Hog特征计算
+    std::vector<float> v_descriptors;			//存放结果
+    hog->compute(img_num, v_descriptors, cv::Size(1, 1), cv::Size(0, 0));    //Hog特征计算
 
-	cv::Mat v_predict = cv::Mat(1, v_descriptors.size(), CV_32FC1);	//预测向量
-	int i = 0;	//对应类别索引
-	for (auto iter = v_descriptors.begin(); iter != v_descriptors.end(); ++iter) {
-		v_predict.at<float>(0, i) = *iter;//第i个样本的特征向量中的第n个元素
-		i++;
-	}
-	v_predict.convertTo(v_predict, CV_32FC1);
+    cv::Mat v_predict = cv::Mat(1, v_descriptors.size(), CV_32FC1);	//预测向量
+    int i = 0;	//对应类别索引
+    for (auto iter = v_descriptors.begin(); iter != v_descriptors.end(); ++iter) {
+        v_predict.at<float>(0, i) = *iter;//第i个样本的特征向量中的第n个元素
+        i++;
+    }
+    v_predict.convertTo(v_predict, CV_32FC1);
     this->id = (unsigned int)classifier_arm.classifier->predict(v_predict);
 
     return;
@@ -162,41 +139,57 @@ void ArmorClassifier::getResult(const cv::Mat& img, int& id, int& type_sz) {
 
 void ArmorClassifier::getResult(const cv::Mat& img, int& type_sz, int& id) {
 
-	cv::Mat input_blob = cv::dnn::blobFromImage(img, 1, cv::Size(64, 64));
+    cv::Mat input_blob = cv::dnn::blobFromImage(img, 1, cv::Size(64, 64));
 
     net.setInput(input_blob, "data");
 
     cv::Mat pred = net.forward("prob");
 
-	cv::Point pt;
-	cv::minMaxLoc(NULL, NULL, NULL, NULL, &pt);
+    cv::Point pt;
+    cv::minMaxLoc(NULL, NULL, NULL, NULL, &pt);
     int res = pt.x;
     type_sz = res < 8 ? TARGET_SMALL_ARMOR : TARGET_BIG_ARMOR;
-	id = res % 8 + 1;
+    id = res % 8 + 1;
 
 
-	draw(img, type_sz, id);
+    draw(img, type_sz, id);
 
 
 }
-
+#elif TYPE_ARMOR_CLASSIFIER == 2
+void ArmorClassifier::getResult(const cv::Mat& img_num, int& type_sz, int& id){
+    cv::Mat dst1;
+    std::vector<float> mean_value = {0.485, 0.456, 0.406};
+    std::vector<float> std_value  = {0.229, 0.224, 0.225};
+    std::vector<cv::Mat> bgrChannels(3);
+    cv::split(img_num, bgrChannels);
+    for(unsigned int i = 0; i < bgrChannels.size(); i++){
+        bgrChannels[i].convertTo(bgrChannels[i], CV_32FC1, 1.0 / 255, -mean_value[i]);
+        bgrChannels[i].convertTo(bgrChannels[i], CV_32FC1, 1.0 / std_value[i], 0.0);
+    }
+    cv::merge(bgrChannels, dst1);
+    cv::Mat blob = cv::dnn::blobFromImage(dst1);
+    net.setInput(blob);
+    cv::Mat pred = net.forward();
+    //std::cout << "pred: " << pred << std::endl;
+    cv::Point pt;
+    cv::minMaxLoc(pred,NULL, NULL, NULL, &pt);
+    int ans = pt.x+1; //位置的x是类别，最大值的x就是最有可能的类别
+    std::cout << "num: " << ans << std::endl;
+    type_sz = ans == 1 ? TARGET_BIG_ARMOR : TARGET_SMALL_ARMOR;
+    id=ans;
+}
 #endif
 
 bool ArmorDetector::run() {
 
     Data& data = Data::getData();
-
     data.img_show = img.clone();
-
-
     setROI(); //roi区域矩形
-
     Armor arm_target;    //目标装甲
     fitArmor(arm_target);  //对得到的灯条进行匹配
-
     if (arm_target.is_empty)
         return false;
-
     getPoints(arm_target);
     return true;
 
@@ -280,8 +273,8 @@ void ArmorDetector::setROI() {
     float ratio_w = 2.5;
     float ratio_h = 1.5;
 
-    if (is_useroi && history.flag && (is_ignore2 == false ||
-			((history.id_last == 2 && history.id_last != 2)))) {
+    if (is_useroi && history.flag && (is_ignore2 == true ||
+            ((history.id_last == 2 && history.id_last != 2)))) {
 
         rect_roi = history.rect_last;
         rect_roi.x -= rect_roi.width * ((ratio_w-1)/2);
@@ -384,7 +377,8 @@ void ArmorDetector::findLamps(cv::Mat& img_gray, SticksSet& led_sticks) {
 void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity_avg) {
     Parameter& param = Parameter::getParameter();
     Data& data = Data::getData();
-    cv::Mat img_gray;	//灰度图像
+    cv::Mat img_gray;	                          //灰度图像
+    cv::Mat img_num(cv::Size(64,64),CV_8UC3);     //数字图像
     cv::cvtColor(img_roi, img_gray, cv::COLOR_BGR2GRAY);
 
     SticksSet led_sticks;
@@ -409,19 +403,16 @@ void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity
                 continue;
             Armor arm(pair_led, img.size());
             if (is_classifier) {
-                classifier.getResult(img, arm.type_armor, arm.id);
-
-
+                arm.getROIImage(img_roi,img_num);
+                classifier.getResult(img_num, arm.type_armor, arm.id);//取装甲识别的数值
                 cv::putText(data.img_show, std::to_string(arm.id), convertSourcePoint(arm.pt_cen),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.5, BGR::all(255), 2);
-
-
-                if (rule_choose == ARMOR_LAST_ID_FIRST && arm.id == history.id_last
-                        && (is_ignore2 || arm.id != 2)) {
-                    history.update(arm, pt_roi);
-                    arm_target = arm;
-                    goto END_FIT_ARMOR;
-                }
+                    cv::FONT_HERSHEY_SIMPLEX, 2, BGR::all(255), 2);//putText 在图像上绘制文字
+//                if (rule_choose == ARMOR_LAST_ID_FIRST && arm.id == history.id_last
+//                        && (is_ignore2 || arm.id != 2)) {
+//                    history.update(arm, pt_roi);
+//                    arm_target = arm;
+//                    goto END_FIT_ARMOR;
+//                }
             }
             else
                 arm.getTypeBySize();
@@ -431,7 +422,7 @@ void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity
         }
 
     for (iter=arms.begin(); iter!=arms.end(); ++iter) {
-        if (iter->id == 2 && is_ignore2 && arms.size()!=1)
+        if (iter->id == 2 && is_ignore2)
             continue;
         arm_target = *iter;
         history.update(arm_target, pt_roi);
@@ -441,8 +432,8 @@ void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity
         history.update(img.size());
 
 
-END_FIT_ARMOR:
-    ;
+//END_FIT_ARMOR:
+//    ;
 
     Tool::drawCross(data.img_show, convertSourcePoint(pt_aim), 5, BGR::all(255), 1);
 
@@ -519,5 +510,4 @@ void ArmorHistory::update(cv::Size sz) {
             rect_last.height = sz.height - rect_last.y;
     }
 }
-
 
