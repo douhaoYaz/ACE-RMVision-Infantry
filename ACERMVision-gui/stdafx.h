@@ -25,6 +25,6 @@
 //能量机关宏开关
 #define BUFF_DETECT_DEBUG
 
-#define TYPE_ARMOR_CLASSIFIER 1	//装甲分类器类型，0:svm 1:dnn
+#define TYPE_ARMOR_CLASSIFIER 2	//装甲分类器类型，0:svm 1:dnn 2:lenet
 
 #endif	//STDAFX_H_INCLUDE
