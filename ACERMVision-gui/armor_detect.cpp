@@ -158,26 +158,31 @@ void ArmorClassifier::getResult(const cv::Mat& img, int& type_sz, int& id) {
 }
 #elif TYPE_ARMOR_CLASSIFIER == 2
 void ArmorClassifier::getResult(const cv::Mat& img_num, int& type_sz, int& id){
-    cv::Mat dst1;
+
+    cv::Mat img_trans;          //transform后的装甲板图像
+    // ImageNet的均值和标准差，用于归一化Normalize
     std::vector<float> mean_value = {0.485, 0.456, 0.406};
     std::vector<float> std_value  = {0.229, 0.224, 0.225};
+
     std::vector<cv::Mat> bgrChannels(3);
     cv::split(img_num, bgrChannels);
+    // 数据缩放和归一化
     for(unsigned int i = 0; i < bgrChannels.size(); i++){
+        // dst = ((src / 255) - mean_value) / std_value
         bgrChannels[i].convertTo(bgrChannels[i], CV_32FC1, 1.0 / 255, -mean_value[i]);
         bgrChannels[i].convertTo(bgrChannels[i], CV_32FC1, 1.0 / std_value[i], 0.0);
     }
-    cv::merge(bgrChannels, dst1);
-    cv::Mat blob = cv::dnn::blobFromImage(dst1);
+    cv::merge(bgrChannels, img_trans);
+
+    cv::Mat blob = cv::dnn::blobFromImage(img_trans);
     net.setInput(blob);
-    cv::Mat pred = net.forward();
-    //std::cout << "pred: " << pred << std::endl;
-    cv::Point pt;
-    cv::minMaxLoc(pred,NULL, NULL, NULL, &pt);
-    int ans = pt.x+1; //位置的x是类别，最大值的x就是最有可能的类别
-    std::cout << "num: " << ans << std::endl;
-    type_sz = ans == 1 ? TARGET_BIG_ARMOR : TARGET_SMALL_ARMOR;
-    id=ans;
+    cv::Mat pred = net.forward();                        // pred为1×n的vector(n为要分类的装甲板数字个数)
+
+    cv::Point maxLoc;
+    cv::minMaxLoc(pred, NULL, NULL, NULL, &maxLoc);     // 找到pred中置信度最高的项
+    int id = maxLoc.x + 1;                              // 置信度最高项的坐标x值即为1×n vector的索引值，即装甲板id
+    std::cout << "num: " << id << std::endl;
+    type_sz = id == 1 ? TARGET_BIG_ARMOR : TARGET_SMALL_ARMOR;
 }
 #endif
 
