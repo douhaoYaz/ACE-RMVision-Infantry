@@ -77,32 +77,35 @@ Armor::Armor(const LEDPair& pair, const cv::Size& size_image):
     pts[3] = cv::Point(rect.x, rect.y);
 }
 
-bool Armor::getROIImage(const cv::Mat& img_src,cv::Mat& img_num) {
-    cv::Mat dst=img_src.clone();
-    double gammaa=0.15;
-    unsigned char lut[256];
-    for(int i=0;i < 256;i++)
-        lut[i] = cv::saturate_cast<uchar>(pow((float)i/255.0,gammaa) * 255.0f);
-    cv::MatIterator_<cv::Vec3b> it, end;
-    for( it = dst.begin<cv::Vec3b>(), end = dst.end<cv::Vec3b>(); it != end; it++ ){
-        (*it)[0] = lut[((*it)[0])];
-        (*it)[1] = lut[((*it)[1])];
-        (*it)[2] = lut[((*it)[2])];
-    }
+void Armor::getROIImage(const cv::Mat& img_roi,cv::Mat& img_num) {
+   // double t_begin=0,t_end=0;
+   // t_begin=cv::getTickCount();
+    //-------------提升img_roi亮度,得到img_gamma----------------//
+    cv::Mat img_gamma ;
+    cv::Mat lookUpTable(1,256,CV_8UC3);//0~255分别非线性矫正，放在lookUpTable
+    uchar *p = lookUpTable.ptr();
+    double gammaa=0.15;//gamma小于1时，亮度提升
+    for(int i = 0;i < 256;i++)
+        p[i] = cv::saturate_cast<uchar>(pow((float)i/255.0,gammaa) * 255.0f);//像素点的幂函数转换
+    cv::LUT(img_roi,lookUpTable,img_gamma);
+    //--------------对图片进行透视变换--------------------//
     std::vector<cv::Point2f> points(pts, pts + 4);
     cv::Mat img_gray = cv::Mat::zeros(64, 64, CV_8UC1);
     cv::Mat mat_trans = cv::getPerspectiveTransform(points, Armor::points);
-    cv::warpPerspective(dst, img_gray, mat_trans, img_gray.size());
+    cv::warpPerspective(img_gamma, img_gray, mat_trans, img_gray.size());
+    //---------涂黑灯条，只截取中间数字部分,减少涣散的灯光对成像质量的影响----------------//
     cv::cvtColor(img_gray, img_gray, cv::COLOR_BGR2GRAY);
     cv::rectangle(img_gray, cv::Point(0, 0), cv::Point(15, 63), BGR::all(0), -1);
     cv::rectangle(img_gray, cv::Point(50, 0), cv::Point(63, 63), BGR::all(0), -1);
+    //-------------直方图均衡化--滤波去噪-----------------//
     cv::equalizeHist(img_gray, img_gray);
     cv::medianBlur(img_gray,img_gray,3);
+    //------------训练的lenet要求输入48*48的彩色图-----------------//
     resize(img_gray,img_gray,cv::Size(48,48),0,0,cv::INTER_LINEAR);
-    //Mat img_num(img_gray.size(),CV_8UC3);
     cvtColor(img_gray, img_num, cv::COLOR_GRAY2BGR);
+   // t_end=cv::getTickCount();
+   // std::cout<<"spend "<<((t_end-t_begin)/cv::getTickFrequency()*1000)<<" ms"<<std::endl;
     cv::imshow("num",img_num);
-    return true;
 }
 
 void Armor::getTypeBySize() {
@@ -158,26 +161,31 @@ void ArmorClassifier::getResult(const cv::Mat& img, int& type_sz, int& id) {
 }
 #elif TYPE_ARMOR_CLASSIFIER == 2
 void ArmorClassifier::getResult(const cv::Mat& img_num, int& type_sz, int& id){
-    cv::Mat dst1;
+
+    cv::Mat img_trans;          //transform后的装甲板图像
+    // ImageNet的均值和标准差，用于归一化Normalize
     std::vector<float> mean_value = {0.485, 0.456, 0.406};
     std::vector<float> std_value  = {0.229, 0.224, 0.225};
+
     std::vector<cv::Mat> bgrChannels(3);
     cv::split(img_num, bgrChannels);
+    // 数据缩放和归一化
     for(unsigned int i = 0; i < bgrChannels.size(); i++){
+        // dst = ((src / 255) - mean_value) / std_value
         bgrChannels[i].convertTo(bgrChannels[i], CV_32FC1, 1.0 / 255, -mean_value[i]);
         bgrChannels[i].convertTo(bgrChannels[i], CV_32FC1, 1.0 / std_value[i], 0.0);
     }
-    cv::merge(bgrChannels, dst1);
-    cv::Mat blob = cv::dnn::blobFromImage(dst1);
+    cv::merge(bgrChannels, img_trans);
+
+    cv::Mat blob = cv::dnn::blobFromImage(img_trans);
     net.setInput(blob);
-    cv::Mat pred = net.forward();
-    //std::cout << "pred: " << pred << std::endl;
-    cv::Point pt;
-    cv::minMaxLoc(pred,NULL, NULL, NULL, &pt);
-    int ans = pt.x+1; //位置的x是类别，最大值的x就是最有可能的类别
-    std::cout << "num: " << ans << std::endl;
-    type_sz = ans == 1 ? TARGET_BIG_ARMOR : TARGET_SMALL_ARMOR;
-    id=ans;
+    cv::Mat pred = net.forward();                        // pred为1×n的vector(n为要分类的装甲板数字个数)
+
+    cv::Point maxLoc;
+    cv::minMaxLoc(pred, NULL, NULL, NULL, &maxLoc);     // 找到pred中置信度最高的项
+    int id = maxLoc.x + 1;                              // 置信度最高项的坐标x值即为1×n vector的索引值，即装甲板id
+    std::cout << "num: " << id << std::endl;
+    type_sz = id == 1 ? TARGET_BIG_ARMOR : TARGET_SMALL_ARMOR;
 }
 #endif
 
