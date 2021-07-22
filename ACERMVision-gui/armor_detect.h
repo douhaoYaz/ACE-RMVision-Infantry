@@ -55,7 +55,7 @@ typedef std::vector<LEDStick> SticksSet;    //灯条集
 
 /**
  *@brief 装甲板id和size分类器
- *@有SVM（太原理工开源）和cv::dnn+caffe两种方法
+ *@有SVM（太原理工开源），cv::dnn+caffe 和 cv::dnn+Lenet三种方法
  */
 class ArmorClassifier {
 public:
@@ -89,15 +89,13 @@ public:
         net = cv::dnn::readNetFromCaffe(path_dnn_net, path_dnn_model);
     }
 #elif TYPE_ARMOR_CLASSIFIER == 2
-    cv::dnn::Net net;        //lenet网络
+    cv::dnn::Net net;        //Lenet网络
     /**
      *@brief 初始化
-     *@param path_dnn_net   lenet模型路径(.protext/.prototxt)
+     *@param path_dnn_net   Lenet模型路径(.onnx)
      */
     ArmorClassifier(std::string path_dnn_net) {
-        //重置背景
-        resetBackground();
-        //读取lenet模型
+        //读取Lenet模型
         net = cv::dnn::readNetFromONNX(path_dnn_net);
     }
 #endif
