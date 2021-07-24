@@ -159,7 +159,9 @@ void ArmorClassifier::getResult(const cv::Mat& img, int& type_sz, int& id) {
 
 
 }
+
 #elif TYPE_ARMOR_CLASSIFIER == 2
+
 void ArmorClassifier::getResult(const cv::Mat& img_num, int& type_sz, int& id){
 
     cv::Mat img_trans;          //transform后的装甲板图像
@@ -183,21 +185,27 @@ void ArmorClassifier::getResult(const cv::Mat& img_num, int& type_sz, int& id){
 
     cv::Point maxLoc;
     cv::minMaxLoc(pred, NULL, NULL, NULL, &maxLoc);     // 找到pred中置信度最高的项
-    int id = maxLoc.x + 1;                              // 置信度最高项的坐标x值即为1×n vector的索引值，即装甲板id
+    id = maxLoc.x + 1;                              // 置信度最高项的坐标x值即为1×n vector的索引值，即装甲板id
     std::cout << "num: " << id << std::endl;
     type_sz = id == 1 ? TARGET_BIG_ARMOR : TARGET_SMALL_ARMOR;
 }
+
 #endif
 
 bool ArmorDetector::run() {
 
     Data& data = Data::getData();
+
     data.img_show = img.clone();
+
     setROI(); //roi区域矩形
+
     Armor arm_target;    //目标装甲
     fitArmor(arm_target);  //对得到的灯条进行匹配
+
     if (arm_target.is_empty)
         return false;
+
     getPoints(arm_target);
     return true;
 
@@ -394,7 +402,7 @@ void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity
 
 //    cv::Point pt_aim = cv::Point(img.cols/2 + param.armor.pt_offset_cap.x - 100, \
 //            img.rows/2 + 100 - param.armor.pt_offset_cap.y) - pt_roi;    //补偿后的中心
-    cv::Point pt_aim = cv::Point(img.cols/2,  img.rows/2) - pt_roi;    //补偿后的中心
+    cv::Point pt_aim = cv::Point(img.cols/2, img.rows/2) - pt_roi;    //补偿后的中心
     typedef std::set<Armor, Armor::ArmorComparer> ArmorSet;
     Armor::ArmorComparer comparer_arm(pt_aim);
     ArmorSet arms(comparer_arm);
@@ -411,7 +419,7 @@ void ArmorDetector::fitArmor(Armor& arm_target, float angle_err, float intensity
                 continue;
             Armor arm(pair_led, img.size());
             if (is_classifier) {
-                arm.getROIImage(img_roi,img_num);
+                arm.getROIImage(img_roi, img_num);
                 classifier.getResult(img_num, arm.type_armor, arm.id);//取装甲识别的数值
                 cv::putText(data.img_show, std::to_string(arm.id), convertSourcePoint(arm.pt_cen),
                     cv::FONT_HERSHEY_SIMPLEX, 2, BGR::all(255), 2);//putText 在图像上绘制文字
