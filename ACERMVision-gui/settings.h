@@ -99,7 +99,7 @@ public:
     std::string path_classifier_arm_svm;			//svm分类器路径
     std::string path_classifier_arm_caffe_net;		//caffe网络
     std::string path_classifier_arm_caffe_model;	//caffe权重文件
-    std::string path_classifier_arm_lenet_model;    //lenet权重文件
+    std::string path_classifier_arm_lenet_model;    	//Lenet模型
 
     std::string path_param_short;			//短焦相机相关参数路径
     int length_f_short;						//焦距(mm)
