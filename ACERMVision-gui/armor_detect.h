@@ -95,9 +95,9 @@ public:
      *@param path_dnn_net   Lenet模型路径(.onnx)
      */
     ArmorClassifier(std::string path_dnn_net) {
-        //读取Lenet模型
-        net = cv::dnn::readNetFromONNX(path_dnn_net);
+        net = cv::dnn::readNetFromONNX(path_dnn_net);	//读取Lenet模型
     }
+
 #endif
 
 public:
@@ -205,9 +205,9 @@ public:
     /**
      *@brief 获取roi数字图像
      *@param img 装甲板所处背景
-     *@return 得出图像是否可用
+     *@param img_num 装甲版数字号码部分图像
      */
-    bool getROIImage(const cv::Mat& img,cv::Mat& img_num);
+    void getROIImage(const cv::Mat& img,cv::Mat& img_num);
 
     /**
      *@brief 根据尺寸获取装甲板类型
